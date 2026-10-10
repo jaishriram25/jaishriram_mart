@@ -3,8 +3,11 @@
 # ==========================================
 FROM gcc:latest AS builder
 
-# Install CMake required for your project configuration
-RUN apt-get update && apt-get install -y cmake
+# Install CMake AND PostgreSQL development libraries
+RUN apt-get update && apt-get install -y \
+    cmake \
+    libpq-dev \
+    postgresql-client
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -23,8 +26,11 @@ RUN mkdir build && \
 # ==========================================
 FROM ubuntu:latest
 
-# Install runtime dependencies if needed (SSL, etc.)
-RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+# Install runtime dependencies including libpq for PostgreSQL connectivity
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    libpq5 \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 

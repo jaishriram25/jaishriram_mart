@@ -1,0 +1,262 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Jai Mart - My Orders</title>
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        .orders-page {
+            min-height: 100vh;
+            background: #f4f7fc;
+            color: #17243b;
+        }
+
+        .orders-main {
+            width: min(1100px, 92%);
+            margin: 38px auto 55px;
+            min-height: 60vh;
+        }
+
+        .orders-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 28px;
+        }
+
+        .orders-eyebrow {
+            color: #2563eb;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .orders-heading h1 {
+            color: #101d36;
+            font-size: clamp(28px, 4vw, 40px);
+            margin: 8px 0;
+        }
+
+        .orders-heading p {
+            color: #68758b;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .orders-shop-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 13px 20px;
+            border-radius: 11px;
+            background: linear-gradient(135deg, #2563eb, #1742b8);
+            color: white;
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 13px;
+            box-shadow: 0 6px 15px rgba(37, 99, 235, 0.18);
+            transition: transform 0.2s;
+        }
+
+        .orders-shop-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .orders-intro-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 22px;
+            margin-bottom: 25px;
+            border-radius: 17px;
+            background: linear-gradient(120deg, #132b56, #2459d6);
+            color: #fff;
+            box-shadow: 0 10px 25px rgba(20, 50, 100, 0.12);
+        }
+
+        .orders-intro-icon {
+            display: grid;
+            place-items: center;
+            width: 55px;
+            height: 55px;
+            flex-shrink: 0;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.14);
+            font-size: 27px;
+        }
+
+        .orders-intro-card h2 {
+            margin: 0 0 6px;
+            font-size: 19px;
+        }
+
+        .orders-intro-card p {
+            margin: 0;
+            color: #dce7ff;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .orders-section-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .orders-section-title h2 {
+            margin: 0;
+            color: #17243b;
+            font-size: 21px;
+        }
+
+        .orders-section-title span {
+            color: #718099;
+            font-size: 12px;
+        }
+
+        #orderList {
+            display: grid;
+            gap: 18px;
+        }
+
+        /* Styles for order cards created by script.js */
+        #orderList > * {
+            background: #fff;
+            border: 1px solid #e3eaf5;
+            border-radius: 16px;
+            padding: 22px;
+            box-shadow: 0 7px 24px rgba(20, 42, 80, 0.05);
+            overflow-wrap: anywhere;
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+
+        #orderList > *:hover {
+            box-shadow: 0 12px 28px rgba(20, 42, 80, 0.09);
+        }
+
+        #orderList h2,
+        #orderList h3,
+        #orderList h4 {
+            color: #172b4d;
+            margin-top: 0;
+        }
+
+        #orderList p {
+            color: #62718a;
+            line-height: 1.7;
+        }
+
+        #orderList button {
+            border: none;
+            border-radius: 9px;
+            padding: 10px 15px;
+            background: #2563eb;
+            color: white;
+            font-size: 13px;
+            font-weight: 750;
+            cursor: pointer;
+        }
+
+        #orderList button:hover {
+            background: #1742b8;
+        }
+
+        #orderList img {
+            max-width: 100%;
+            border-radius: 10px;
+        }
+
+        .orders-page footer {
+            text-align: center;
+            margin-top: 35px;
+        }
+
+        @media (max-width: 600px) {
+            .orders-main {
+                margin-top: 25px;
+            }
+
+            .orders-intro-card {
+                align-items: flex-start;
+                padding: 17px;
+            }
+
+            #orderList > * {
+                padding: 16px;
+            }
+
+            .orders-heading {
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+
+<body class="orders-page">
+
+<header>
+    <div class="logo">JAI MART</div>
+
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="orders.html">Orders</a>
+        <a href="cart.html">🛒 Cart</a>
+        <a href="login.html" id="loginLink">Login</a>
+    </nav>
+</header>
+
+<main class="orders-main">
+
+    <section class="orders-heading">
+        <div>
+            <div class="orders-eyebrow">Your shopping activity</div>
+            <h1>My Orders 📦</h1>
+            <p>View your purchases and check your order details.</p>
+        </div>
+
+        <a href="index.html" class="orders-shop-button">
+            + Shop More
+        </a>
+    </section>
+
+    <section class="orders-intro-card">
+        <div class="orders-intro-icon">🛍️</div>
+        <div>
+            <h2>Your orders, all in one place</h2>
+            <p>Here you can view the orders available in your account.</p>
+        </div>
+    </section>
+
+    <section>
+        <div class="orders-section-title">
+            <h2>Order History</h2>
+            <span>Recent purchases</span>
+        </div>
+
+        <div id="orderList" aria-live="polite">
+            <div style="text-align:center; padding:30px; color:#718099;">
+                Loading your orders...
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<footer>
+    <p>© 2026 Jai Mart. All Rights Reserved.</p>
+</footer>
+
+<script src="script.js"></script>
+
+</body>
+</html>

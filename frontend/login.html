@@ -1,0 +1,454 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Jai Mart - Login</title>
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        .login-page {
+            min-height: 100vh;
+            background: #f4f7fc;
+            color: #17243b;
+        }
+
+        .login-main {
+            width: min(1000px, 92%);
+            min-height: 75vh;
+            margin: 35px auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            align-items: stretch;
+            border-radius: 22px;
+            overflow: hidden;
+            background: #fff;
+            border: 1px solid #e3eaf5;
+            box-shadow: 0 15px 45px rgba(20, 42, 80, 0.09);
+        }
+
+        .login-welcome {
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 45px;
+            color: #fff;
+            background: linear-gradient(145deg, #101d36, #1742a0 65%, #2563eb);
+        }
+
+        .login-welcome::before,
+        .login-welcome::after {
+            content: "";
+            position: absolute;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .login-welcome::before {
+            width: 300px;
+            height: 300px;
+            right: -130px;
+            top: -100px;
+        }
+
+        .login-welcome::after {
+            width: 220px;
+            height: 220px;
+            right: -85px;
+            top: -60px;
+        }
+
+        .welcome-badge {
+            width: fit-content;
+            padding: 8px 13px;
+            margin-bottom: 24px;
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            color: #dce7ff;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+        }
+
+        .login-welcome h1 {
+            position: relative;
+            z-index: 1;
+            font-size: clamp(30px, 4vw, 44px);
+            line-height: 1.15;
+            margin: 0 0 18px;
+            color: #fff;
+        }
+
+        .login-welcome h1 span {
+            color: #93baff;
+        }
+
+        .login-welcome > p {
+            position: relative;
+            z-index: 1;
+            color: #d1def7;
+            font-size: 14px;
+            line-height: 1.9;
+            max-width: 340px;
+            margin: 0;
+        }
+
+        .welcome-features {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            gap: 17px;
+            margin-top: 35px;
+        }
+
+        .welcome-feature {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #edf3ff;
+            font-size: 13px;
+            font-weight: 650;
+        }
+
+        .feature-icon {
+            display: grid;
+            place-items: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.13);
+        }
+
+        .login-form-panel {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 45px;
+            min-width: 0;
+        }
+
+        .login-heading-icon {
+            width: 53px;
+            height: 53px;
+            display: grid;
+            place-items: center;
+            background: #eaf1ff;
+            color: #2459d6;
+            border-radius: 15px;
+            font-size: 25px;
+            margin-bottom: 22px;
+        }
+
+        .login-form-panel h2 {
+            color: #13213b;
+            font-size: 29px;
+            margin: 0 0 9px;
+        }
+
+        .login-subtitle {
+            color: #77849a;
+            font-size: 13px;
+            line-height: 1.7;
+            margin: 0 0 28px;
+        }
+
+        .login-form {
+            display: grid;
+            gap: 17px;
+        }
+
+        .login-field {
+            display: grid;
+            gap: 8px;
+        }
+
+        .login-field label {
+            color: #34435b;
+            font-size: 13px;
+            font-weight: 750;
+        }
+
+        .login-field input {
+            width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
+            padding: 14px;
+            border: 1px solid #dce4f0;
+            border-radius: 10px;
+            background: #fbfcff;
+            outline: none;
+            color: #17243b;
+            font: inherit;
+            font-size: 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .login-field input:focus {
+            border-color: #3975ed;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.11);
+        }
+
+        .login-field input::placeholder {
+            color: #a0aabc;
+        }
+
+        .password-wrap {
+            position: relative;
+        }
+
+        .password-wrap input {
+            padding-right: 75px;
+        }
+
+        .toggle-password {
+            position: absolute;
+            top: 50%;
+            right: 12px;
+            transform: translateY(-50%);
+            padding: 5px;
+            border: none;
+            background: transparent;
+            color: #2459d6;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .login-submit {
+            width: 100%;
+            min-height: 49px;
+            margin-top: 5px;
+            border: none;
+            border-radius: 11px;
+            color: #fff;
+            background: linear-gradient(135deg, #2563eb, #1742b8);
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 7px 16px rgba(37, 99, 235, 0.2);
+            transition: transform 0.2s, opacity 0.2s;
+        }
+
+        .login-submit:hover {
+            transform: translateY(-2px);
+        }
+
+        .login-submit:disabled {
+            opacity: 0.65;
+            cursor: wait;
+            transform: none;
+        }
+
+        .login-register {
+            text-align: center;
+            margin: 25px 0 0;
+            color: #77849a;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .login-register a {
+            color: #2459d6;
+            font-weight: 800;
+            text-decoration: none;
+        }
+
+        .login-register a:hover {
+            text-decoration: underline;
+        }
+
+        .login-back-home {
+            display: block;
+            margin-top: 17px;
+            text-align: center;
+            color: #77849a;
+            font-size: 12px;
+            text-decoration: none;
+        }
+
+        .login-back-home:hover {
+            color: #2459d6;
+        }
+
+        .login-page footer {
+            text-align: center;
+            padding: 5px 15px 20px;
+            color: #77849a;
+            font-size: 13px;
+        }
+
+        @media (max-width: 760px) {
+            .login-main {
+                grid-template-columns: 1fr;
+                width: min(480px, 92%);
+                margin: 25px auto;
+            }
+
+            .login-welcome {
+                padding: 30px;
+            }
+
+            .login-welcome h1 {
+                font-size: 32px;
+            }
+
+            .welcome-features {
+                grid-template-columns: 1fr;
+                gap: 12px;
+                margin-top: 24px;
+            }
+
+            .login-form-panel {
+                padding: 30px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .login-welcome,
+            .login-form-panel {
+                padding: 23px;
+            }
+        }
+    </style>
+</head>
+
+<body class="login-page">
+
+<header>
+    <div class="logo">JAI MART</div>
+
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="register.html">Register</a>
+    </nav>
+</header>
+
+<main class="login-main">
+
+    <section class="login-welcome">
+        <div class="welcome-badge">WELCOME TO JAI MART</div>
+
+        <h1>Shopping made <span>simple.</span></h1>
+
+        <p>
+            Sign in to your account to explore products,
+            manage your cart and view your orders in one place.
+        </p>
+
+        <div class="welcome-features">
+            <div class="welcome-feature">
+                <span class="feature-icon">🛍️</span>
+                <span>Explore your favourite products</span>
+            </div>
+
+            <div class="welcome-feature">
+                <span class="feature-icon">📦</span>
+                <span>Keep track of your orders</span>
+            </div>
+
+            <div class="welcome-feature">
+                <span class="feature-icon">🔒</span>
+                <span>Convenient account access</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="login-form-panel">
+        <div class="login-heading-icon">👋</div>
+
+        <h2>Welcome Back!</h2>
+        <p class="login-subtitle">
+            Enter your account details to continue shopping.
+        </p>
+
+        <form class="login-form" onsubmit="loginUser(event)">
+
+            <div class="login-field">
+                <label for="loginEmail">Email Address</label>
+                <input
+                    type="email"
+                    id="loginEmail"
+                    name="email"
+                    placeholder="you@example.com"
+                    autocomplete="email"
+                    maxlength="254"
+                    required
+                >
+            </div>
+
+            <div class="login-field">
+                <label for="loginPassword">Password</label>
+
+                <div class="password-wrap">
+                    <input
+                        type="password"
+                        id="loginPassword"
+                        name="password"
+                        placeholder="Enter your password"
+                        autocomplete="current-password"
+                        required
+                    >
+
+                    <button
+                        type="button"
+                        class="toggle-password"
+                        id="togglePassword"
+                        aria-label="Show password"
+                        aria-pressed="false"
+                    >
+                        Show
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="login-submit" id="loginSubmit">
+                Sign In →
+            </button>
+
+        </form>
+
+        <p class="login-register">
+            Don't have an account?
+            <a href="register.html">Create Account</a>
+        </p>
+
+        <a class="login-back-home" href="index.html">
+            ← Back to Home
+        </a>
+    </section>
+
+</main>
+
+<footer>
+    <p>© 2026 Jai Mart. All Rights Reserved.</p>
+</footer>
+
+<script>
+const passwordInput = document.getElementById("loginPassword");
+const togglePassword = document.getElementById("togglePassword");
+
+togglePassword.addEventListener("click", function() {
+    const showPassword = passwordInput.type === "password";
+
+    passwordInput.type = showPassword ? "text" : "password";
+    togglePassword.textContent = showPassword ? "Hide" : "Show";
+    togglePassword.setAttribute("aria-pressed", String(showPassword));
+    togglePassword.setAttribute(
+        "aria-label",
+        showPassword ? "Hide password" : "Show password"
+    );
+});
+</script>
+
+<script src="script.js"></script>
+
+</body>
+</html>

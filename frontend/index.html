@@ -1,0 +1,269 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0b1120">
+
+    <title>Jai Mart | Shop Smarter</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="top-strip">
+        <p>✨ Your everyday shopping destination</p>
+    </div>
+
+    <header class="main-header">
+        <a href="index.html" class="logo">
+            <span class="logo-icon">J</span>
+            <span>JAI<span class="logo-blue"> MART</span>
+                <small>SHOP SMARTER. LIVE BETTER.</small>
+            </span>
+        </a>
+
+        <div class="search-box">
+            <span class="search-icon">⌕</span>
+            <input
+                type="text"
+                id="searchInput"
+                placeholder="Search your favourite products..."
+                aria-label="Search products"
+                onkeydown="if(event.key==='Enter') searchProducts()"
+            >
+            <button onclick="searchProducts()">Search</button>
+        </div>
+
+        <nav class="main-nav">
+            <a href="index.html" class="nav-active">Home</a>
+            <a href="#productsSection">Shop</a>
+            <a href="orders.html">Orders</a>
+            <a href="cart.html" class="cart-link">🛒 Cart</a>
+            <a href="login.html" id="loginLink" class="login-link">Login ↗</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="hero-glow glow-one"></div>
+            <div class="hero-glow glow-two"></div>
+
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span class="live-dot"></span>
+                    YOUR ONE-STOP SHOPPING DESTINATION
+                </div>
+
+                <h1>
+                    Find Your Next<br>
+                    <span>Favourite Thing.</span>
+                </h1>
+
+                <p class="hero-description">
+                    Discover everyday essentials, trending products and
+                    exciting finds — all in one place.
+                </p>
+
+                <div class="hero-actions">
+                    <button class="primary-btn" onclick="scrollToProducts()">
+                        Explore Products <span>→</span>
+                    </button>
+                    <a href="#categories" class="secondary-btn">
+                        Explore Categories
+                    </a>
+                </div>
+
+                <div class="hero-features">
+                    <div class="feature">
+                        <span class="feature-icon">✦</span>
+                        <div>
+                            <strong>Great Finds</strong>
+                            <small>Everyday favourites</small>
+                        </div>
+                    </div>
+                    <div class="feature">
+                        <span class="feature-icon">✓</span>
+                        <div>
+                            <strong>Easy Shopping</strong>
+                            <small>Simple and convenient</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-art" aria-hidden="true">
+                <div class="orbit orbit-one"></div>
+                <div class="orbit orbit-two"></div>
+                <div class="hero-core">
+                    <div class="core-star">✦</div>
+                    <span>JAI</span>
+                    <strong>MART</strong>
+                    <small>YOUR WORLD OF SHOPPING</small>
+                </div>
+                <div class="floating-card floating-card-one">
+                    <span>⚡</span>
+                    <div><strong>Discover</strong><small>Something new</small></div>
+                </div>
+                <div class="floating-card floating-card-two">
+                    <span>🛍️</span>
+                    <div><strong>Shop your way</strong><small>Find your favourites</small></div>
+                </div>
+                <div class="decorative-dot dot-one"></div>
+                <div class="decorative-dot dot-two"></div>
+                <div class="decorative-dot dot-three"></div>
+            </div>
+        </section>
+
+        <section class="benefits">
+            <div class="benefit-item">
+                <span class="benefit-icon">🛍️</span>
+                <div><strong>Easy Shopping</strong><small>Browse with ease</small></div>
+            </div>
+            <div class="benefit-item">
+                <span class="benefit-icon">🔎</span>
+                <div><strong>Find Your Favourites</strong><small>Search products quickly</small></div>
+            </div>
+            <div class="benefit-item">
+                <span class="benefit-icon">📦</span>
+                <div><strong>Order Tracking</strong><small>Visit your orders page</small></div>
+            </div>
+        </section>
+
+        <section class="category-section" id="categories">
+            <div class="section-heading">
+                <div>
+                    <span class="eyebrow">EXPLORE OUR STORE</span>
+                    <h2>Shop by <span>Category</span></h2>
+                    <p>Find something you'll love.</p>
+                </div>
+                <a href="#productsSection" class="text-link">View all products →</a>
+            </div>
+
+            <div class="category-cards">
+                <button class="category-card category-electronics"
+                    onclick="filterCategory('Electronics')">
+                    <span class="category-emoji">🎧</span>
+                    <span class="category-name">Electronics</span>
+                    <span class="category-arrow">↗</span>
+                </button>
+
+                <button class="category-card category-fashion"
+                    onclick="filterCategory('Fashion')">
+                    <span class="category-emoji">👕</span>
+                    <span class="category-name">Fashion</span>
+                    <span class="category-arrow">↗</span>
+                </button>
+
+                <button class="category-card category-footwear"
+                    onclick="filterCategory('Footwear')">
+                    <span class="category-emoji">👟</span>
+                    <span class="category-name">Footwear</span>
+                    <span class="category-arrow">↗</span>
+                </button>
+
+                <button class="category-card category-accessories"
+                    onclick="filterCategory('Accessories')">
+                    <span class="category-emoji">⌚</span>
+                    <span class="category-name">Accessories</span>
+                    <span class="category-arrow">↗</span>
+                </button>
+            </div>
+        </section>
+
+        <section class="products-section" id="productsSection">
+            <div class="section-heading">
+                <div>
+                    <span class="eyebrow">HANDPICKED FOR YOU</span>
+                    <h2>Explore <span>Products</span></h2>
+                    <p>Discover your next favourite find.</p>
+                </div>
+                <div class="products-label">✦ YOUR SHOPPING PICKS</div>
+            </div>
+
+            <div class="category-filter">
+                <button class="filter-btn active" onclick="filterCategory('All')">All Products</button>
+                <button class="filter-btn" onclick="filterCategory('Electronics')">Electronics</button>
+                <button class="filter-btn" onclick="filterCategory('Bags')">Bags</button>
+                <button class="filter-btn" onclick="filterCategory('Footwear')">Footwear</button>
+                <button class="filter-btn" onclick="filterCategory('Fashion')">Fashion</button>
+                <button class="filter-btn" onclick="filterCategory('Sports')">Sports</button>
+                <button class="filter-btn" onclick="filterCategory('Home')">Home</button>
+                <button class="filter-btn" onclick="filterCategory('Stationery')">Stationery</button>
+                <button class="filter-btn" onclick="filterCategory('Accessories')">Accessories</button>
+                <button class="filter-btn" onclick="filterCategory('Furniture')">Furniture</button>
+            </div>
+
+            <!-- Existing script.js loads products into this element -->
+            <div class="products" id="product-grid"></div>
+        </section>
+
+        <section class="bottom-banner">
+            <div>
+                <span class="eyebrow">YOUR NEXT GREAT FIND IS HERE</span>
+                <h2>Good finds.<br><span>Great shopping.</span></h2>
+                <p>Explore the collection and find what you need.</p>
+            </div>
+            <button class="primary-btn" onclick="scrollToProducts()">
+                Start Shopping <span>→</span>
+            </button>
+            <div class="banner-decoration">✦</div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <a href="index.html" class="footer-logo">JAI<span> MART</span></a>
+        <p>Your everyday shopping destination.</p>
+        <div class="footer-links">
+            <a href="index.html">Home</a>
+            <a href="#productsSection">Shop</a>
+            <a href="orders.html">Orders</a>
+            <a href="cart.html">Cart</a>
+        </div>
+        <div class="footer-bottom">
+            © 2026 Jai Mart. All rights reserved.
+            <span>Made for smarter shopping ✦</span>
+        </div>
+    </footer>
+
+    <button class="back-to-top" id="backToTop" aria-label="Back to top"
+        onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+    <script src="script.js"></script>
+
+    <script>
+        // Highlight the selected category filter.
+        document.querySelectorAll(".filter-btn").forEach(function (button) {
+            button.addEventListener("click", function () {
+                document.querySelectorAll(".filter-btn").forEach(function (item) {
+                    item.classList.remove("active");
+                });
+                button.classList.add("active");
+            });
+        });
+
+        // Reveal sections smoothly as they enter the screen.
+        const revealObserver = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add("revealed");
+                    revealObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.08 });
+
+        document.querySelectorAll(
+            ".category-section, .products-section, .benefits, .bottom-banner"
+        ).forEach(function (section) {
+            section.classList.add("reveal-on-scroll");
+            revealObserver.observe(section);
+        });
+
+        // Back-to-top button visibility.
+        const topButton = document.getElementById("backToTop");
+        window.addEventListener("scroll", function () {
+            topButton.classList.toggle("visible", window.scrollY > 450);
+        });
+    </script>
+</body>
+</html>

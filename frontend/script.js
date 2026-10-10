@@ -1,77 +1,78 @@
 
+const API_URL = "https://jaishriram-mart.onrender.com/api";
+
 let allProducts = [];
 let currentCategory = "All";
+let cart = JSON.parse(localStorage.getItem("jaishriram_cart") || "[]");
 
 // ========================================
-// PRODUCT IMAGE MAPPING
+// API HELPER
 // ========================================
 
-function getProductImage(product) {
-    const image = typeof product.image === "string"
-        ? product.image.trim()
-        : "";
+async function apiRequest(endpoint, options = {}) {
+    const response = await fetch(`${API_URL}${endpoint}`, {
+        ...options,
+        headers: {
+            ...(options.body && !(options.body instanceof FormData)
+                ? { "Content-Type": "application/json" }
+                : {}),
+            ...options.headers
+        }
+    });
 
-    if (!image) return "";
+    const text = await response.text();
+    let data = {};
 
-    if (/^https?:\/\//i.test(image) || image.startsWith("data:")) {
-        return image;
+    try {
+        data = text ? JSON.parse(text) : {};
+    } catch {
+        data = { message: text };
     }
 
-    const fileName = image.split(/[\\/]/).pop().toLowerCase();
+    if (!response.ok) {
+        throw new Error(
+            data.message ||
+            data.error ||
+            `Request failed: ${response.status}`
+        );
+    }
 
-    const imageMap = {
-        "smartwatch.jpg": "smart-watch.jpg",
-        "headphones.jpg": "wireless-headphones.jpg",
-        "backpack.jpg": "college-backpack.jpg",
-        "shoes.jpg": "running-shoes.jpg",
-        "speaker.jpg": "bluetooth-speaker.jpg",
-        "keyboard.jpg": "usb-keyboard.jpg",
-        "mouse.jpg": "wireless-mouse.jpg",
-        "powerbank.jpg": "mobile-charger.jpg",
-        "charger.jpg": "mobile-charger.jpg",
-        "cable.jpg": "usb-type-c-cable.jpg",
-        "laptopstand.jpg": "laptop-stand.jpg",
-        "bottle.jpg": "water-bottle.jpg",
-        "notebook.jpg": "college-notebook.jpg",
-        "pens.jpg": "college-notebook.jpg",
-        "schoolbag.jpg": "school-backpack.jpg",
-        "cap.jpg": "sports-cap.jpg",
-        "tshirt.jpg": "cotton-t-shirt.jpg",
-        "trackpants.jpg": "running-shoes.jpg",
-        "casualshoes.jpg": "casual-shoes.jpg",
-        "football.jpg": "football.jpg",
-        "bat.jpg": "cricket-bat.jpg",
-        "yogamat.jpg": "yoga-mat.jpg",
-        "desklamp.jpg": "desk-lamp.jpg",
-        "studytable.jpg": "study-table.jpg",
-        "travelbag.jpg": "travel-bag.jpg",
-        "sunglasses.jpg": "sunglasses.jpg",
-        "wireless-mouse.jpg": "wireless-mouse.jpg"
-    };
-
-    const actualFile = imageMap[fileName] || fileName;
-
-    // images folder is beside frontend folder
-    return "../images/" + actualFile;
+    return data;
 }
 
 // ========================================
-// IMAGE ERROR HANDLER
+// NOTIFICATION
 // ========================================
 
-function handleImageError(imageElement) {
-    if (!imageElement) return;
+function showMessage(message, isError = false) {
+    let box = document.getElementById("mart-message");
 
-    console.error("Image failed to load:", imageElement.src);
+    if (!box) {
+        box = document.createElement("div");
+        box.id = "mart-message";
 
-    imageElement.onerror = null;
+        Object.assign(box.style, {
+            position: "fixed",
+            top: "20px",
+            right: "20px",
+            zIndex: "99999",
+            padding: "14px 20px",
+            borderRadius: "8px",
+            background: "#ffffff",
+            color: "#222222",
+            boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
+            maxWidth: "350px"
+        });
 
-    const parent = imageElement.parentElement;
-
-    if (parent) {
-        parent.innerHTML =
-            '<div class="image-placeholder">🛍️</div>';
+        document.body.appendChild(box);
     }
+
+    box.textContent = message;
+    box.style.borderLeft = isError
+        ? "5px solid #dc2626"
+        : "5px solid #16a34a";
+
+    box.style.display = "block";
 }
 
 // ========================================
@@ -79,118 +80,131 @@ function handleImageError(imageElement) {
 // ========================================
 
 async function loadProducts() {
-    const productGrid = document.getElementById("product-grid");
+    const grid = document.getElementById("product-grid");
 
-    if (!productGrid) return;
-
-    productGrid.innerHTML =
-        '<p class="loading-message">Loading products...</p>';
+    if (grid) {
+        grid.innerHTML = "<p>Loading products...</p>";
+    }
 
     try {
-        const response = await fetch(
-            "http://localhost:8080/api/products",
-            { cache: "no-store" }
-        );
+        const data = await apiRequest("/products");
 
-        if (!response.ok) {
-            throw new Error("Failed to load products");
-        }
+        allProducts = Array.isArray(data)
+            ? data
+            : data.products || data.data || [];
 
-        const products = await response.json();
-
-        if (!Array.isArray(products)) {
-            throw new Error("Invalid product data");
-        }
-
-        allProducts = products;
-        displayProducts(allProducts);
+        renderProducts();
+        renderCategories();
 
     } catch (error) {
         console.error("Product loading error:", error);
 
-        productGrid.innerHTML = `
-            <div class="error-message">
-                <h3>Unable to load products</h3>
-                <p>Please make sure Jai Mart backend is running.</p>
-            </div>
-        `;
+        if (grid) {
+            grid.innerHTML =
+                "<p>Products could not be loaded. Please check the backend connection.</p>";
+        }
     }
 }
 
 // ========================================
-// DISPLAY PRODUCTS
+// PRODUCT IMAGE
 // ========================================
 
-function displayProducts(products) {
-    const productGrid = document.getElementById("product-grid");
+function getProductImage(product) {
+    const image = product.image_url ||
+        product.image ||
+        product.imageUrl ||
+        "";
 
-    if (!productGrid) return;
+    if (!image) {
+        return "../images/no-image.png";
+    }
 
-    if (!products || products.length === 0) {
-        productGrid.innerHTML = `
-            <div class="no-products">
-                <h3>No products found</h3>
-                <p>Try another category or search.</p>
-            </div>
-        `;
+    if (
+        image.startsWith("https://") ||
+        image.startsWith("http://") ||
+        image.startsWith("data:") ||
+        image.startsWith("/")
+    ) {
+        return image;
+    }
+
+    return `../images/${image}`;
+}
+
+// ========================================
+// RENDER PRODUCTS
+// ========================================
+
+function renderProducts() {
+    const grid = document.getElementById("product-grid");
+
+    if (!grid) return;
+
+    const searchInput =
+        document.getElementById("search-input") ||
+        document.getElementById("search");
+
+    const searchText = searchInput
+        ? searchInput.value.trim().toLowerCase()
+        : "";
+
+    const filteredProducts = allProducts.filter(product => {
+        const name = String(product.name || "").toLowerCase();
+        const category = String(
+            product.category || product.category_name || ""
+        );
+
+        const matchesSearch =
+            name.includes(searchText) ||
+            category.toLowerCase().includes(searchText);
+
+        const matchesCategory =
+            currentCategory === "All" ||
+            category.toLowerCase() === currentCategory.toLowerCase();
+
+        return matchesSearch && matchesCategory;
+    });
+
+    if (filteredProducts.length === 0) {
+        grid.innerHTML = "<p>No products found.</p>";
         return;
     }
 
-    productGrid.innerHTML = products.map(product => {
-        const productName = product.name || "Product";
-        const description = product.description || "Quality product";
-        const category = product.category || "General";
-        const price = Number(product.price) || 0;
-        const productId = Number(product.id);
-        const imageSrc = getProductImage(product);
-        const stock = Number(product.quantity) || 0;
-
-        const imageHTML = imageSrc
-            ? `
-                <img
-                    src="${imageSrc}"
-                    alt="${productName}"
-                    class="product-img"
-                    loading="lazy"
-                    onerror="handleImageError(this)"
-                >
-            `
-            : '<div class="image-placeholder">🛍️</div>';
+    grid.innerHTML = filteredProducts.map(product => {
+        const id = product.id ?? product.product_id;
+        const name = escapeHTML(product.name || "Product");
+        const price = Number(product.price || 0);
+        const quantity = Number(
+            product.quantity ?? product.stock ?? 0
+        );
+        const image = getProductImage(product);
 
         return `
             <div class="product-card">
-                <div class="product-image">
-                    ${imageHTML}
-                </div>
+                <img
+                    src="${escapeHTML(image)}"
+                    alt="${name}"
+                    class="product-image"
+                    onerror="this.onerror=null;this.src='https://placehold.co/300x220?text=Product'"
+                >
 
-                <h3>${productName}</h3>
+                <h3>${name}</h3>
 
-                <p class="product-description">
-                    ${description}
-                </p>
-
-                <p class="price">
+                <p class="product-price">
                     ₹${price.toFixed(2)}
                 </p>
 
-                <p class="product-category">
-                    Category: <strong>${category}</strong>
-                </p>
-
-                <p class="stock-status">
-                    ${
-                        stock > 0
-                            ? `In Stock: ${stock}`
-                            : "Out of Stock"
-                    }
+                <p class="product-stock">
+                    ${quantity > 0 ? "In Stock" : "Out of Stock"}
                 </p>
 
                 <button
-                    class="cart-btn"
-                    onclick="addToCart(${productId})"
-                    ${stock <= 0 ? "disabled" : ""}
+                    type="button"
+                    onclick="addToCart(${JSON.stringify(String(id))})"
+                    ${quantity <= 0 ? "disabled" : ""}
                 >
-                    ${stock > 0 ? "Add to Cart" : "Out of Stock"}
+                    Add to Cart
                 </button>
             </div>
         `;
@@ -198,137 +212,258 @@ function displayProducts(products) {
 }
 
 // ========================================
-// CATEGORY FILTER
+// SAFE HTML TEXT
 // ========================================
+
+function escapeHTML(value) {
+    return String(value).replace(/[&<>"']/g, character => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    })[character]);
+}
+
+// ========================================
+// LOAD CATEGORIES
+// ========================================
+
+async function renderCategories() {
+    const container =
+        document.getElementById("category-list") ||
+        document.getElementById("categories");
+
+    const select = document.getElementById("category-filter");
+
+    let categories = [
+        ...new Set(
+            allProducts
+                .map(product =>
+                    product.category || product.category_name
+                )
+                .filter(Boolean)
+        )
+    ];
+
+    try {
+        const data = await apiRequest("/categories");
+
+        const apiCategories = Array.isArray(data)
+            ? data
+            : data.categories || data.data || [];
+
+        categories = [
+            ...new Set([
+                ...categories,
+                ...apiCategories.map(category =>
+                    typeof category === "string"
+                        ? category
+                        : category.name || category.category
+                ).filter(Boolean)
+            ])
+        ];
+    } catch (error) {
+        console.warn("Could not load API categories:", error.message);
+    }
+
+    if (container) {
+        container.innerHTML = ["All", ...categories].map(category => `
+            <button
+                type="button"
+                class="category-button"
+                onclick="filterCategory(${JSON.stringify(category)})"
+            >
+                ${escapeHTML(category)}
+            </button>
+        `).join("");
+    }
+
+    if (select) {
+        select.innerHTML = `
+            <option value="All">All Categories</option>
+            ${categories.map(category => `
+                <option value="${escapeHTML(category)}">
+                    ${escapeHTML(category)}
+                </option>
+            `).join("")}
+        `;
+
+        select.value = currentCategory;
+    }
+}
 
 function filterCategory(category) {
     currentCategory = category;
-
-    if (category === "All") {
-        displayProducts(allProducts);
-        return;
-    }
-
-    const filteredProducts = allProducts.filter(product =>
-        (product.category || "").toLowerCase() ===
-        category.toLowerCase()
-    );
-
-    displayProducts(filteredProducts);
+    renderProducts();
 }
-
-// ========================================
-// SEARCH PRODUCTS
-// ========================================
 
 function searchProducts() {
-    const searchInput = document.getElementById("searchInput");
+    renderProducts();
+}
 
-    if (!searchInput) return;
+// ========================================
+// CART
+// ========================================
 
-    const searchText = searchInput.value.trim().toLowerCase();
-
-    let productsToSearch = allProducts;
-
-    if (currentCategory !== "All") {
-        productsToSearch = allProducts.filter(product =>
-            (product.category || "").toLowerCase() ===
-            currentCategory.toLowerCase()
-        );
-    }
-
-    if (!searchText) {
-        displayProducts(productsToSearch);
-        return;
-    }
-
-    const filteredProducts = productsToSearch.filter(product =>
-        (product.name || "").toLowerCase().includes(searchText) ||
-        (product.category || "").toLowerCase().includes(searchText) ||
-        (product.description || "").toLowerCase().includes(searchText)
+function saveCart() {
+    localStorage.setItem(
+        "jaishriram_cart",
+        JSON.stringify(cart)
     );
 
-    displayProducts(filteredProducts);
+    renderCart();
 }
-
-// ========================================
-// SEARCH WHILE TYPING
-// ========================================
-
-function enableSearchTyping() {
-    const searchInput = document.getElementById("searchInput");
-
-    if (searchInput) {
-        searchInput.addEventListener("input", searchProducts);
-    }
-}
-
-// ========================================
-// SCROLL TO PRODUCTS
-// ========================================
-
-function scrollToProducts() {
-    const section = document.getElementById("productsSection");
-
-    if (section) {
-        section.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-        });
-    }
-}
-
-// ========================================
-// ADD TO CART
-// ========================================
 
 function addToCart(productId) {
-    const product = allProducts.find(
-        item => Number(item.id) === Number(productId)
+    const product = allProducts.find(item =>
+        String(item.id ?? item.product_id) === String(productId)
     );
 
     if (!product) {
-        alert("Product not found!");
+        showMessage("Product not found. Reload the page.", true);
         return;
     }
 
-    const stock = Number(product.quantity) || 0;
+    const stock = Number(product.quantity ?? product.stock ?? 0);
 
     if (stock <= 0) {
-        alert("This product is out of stock!");
+        showMessage("This product is out of stock.", true);
         return;
     }
 
-    let cart = JSON.parse(localStorage.getItem("cart")) || [];
-
-    const existingProduct = cart.find(
-        item => Number(item.id) === Number(productId)
+    const existingItem = cart.find(item =>
+        String(item.id) === String(productId)
     );
 
-    const currentQuantity = existingProduct
-        ? Number(existingProduct.quantity) || 0
-        : 0;
+    if (existingItem) {
+        if (existingItem.quantity >= stock) {
+            showMessage("Available stock limit reached.", true);
+            return;
+        }
 
-    if (currentQuantity >= stock) {
-        alert("You cannot add more than the available stock!");
-        return;
-    }
-
-    if (existingProduct) {
-        existingProduct.quantity = currentQuantity + 1;
+        existingItem.quantity++;
     } else {
         cart.push({
-            id: product.id,
+            id: product.id ?? product.product_id,
             name: product.name,
-            price: Number(product.price) || 0,
+            price: Number(product.price || 0),
             image: getProductImage(product),
             quantity: 1
         });
     }
 
-    localStorage.setItem("cart", JSON.stringify(cart));
+    saveCart();
+    showMessage("Product added to cart!");
+}
 
-    alert(product.name + " added to cart!");
+function removeFromCart(productId) {
+    cart = cart.filter(item =>
+        String(item.id) !== String(productId)
+    );
+
+    saveCart();
+}
+
+function updateCartQuantity(productId, quantity) {
+    const item = cart.find(item =>
+        String(item.id) === String(productId)
+    );
+
+    if (!item) return;
+
+    const newQuantity = Number(quantity);
+
+    if (!Number.isInteger(newQuantity) || newQuantity < 1) {
+        removeFromCart(productId);
+        return;
+    }
+
+    const product = allProducts.find(product =>
+        String(product.id ?? product.product_id) === String(productId)
+    );
+
+    const stock = product
+        ? Number(product.quantity ?? product.stock ?? 0)
+        : newQuantity;
+
+    item.quantity = Math.min(newQuantity, stock);
+
+    saveCart();
+}
+
+function renderCart() {
+    const cartContainer =
+        document.getElementById("cart-items") ||
+        document.getElementById("cart-container");
+
+    const countElement = document.getElementById("cart-count");
+    const totalElement = document.getElementById("cart-total");
+
+    const totalItems = cart.reduce(
+        (sum, item) => sum + Number(item.quantity || 0),
+        0
+    );
+
+    const totalPrice = cart.reduce(
+        (sum, item) =>
+            sum + Number(item.price || 0) * Number(item.quantity || 0),
+        0
+    );
+
+    if (countElement) {
+        countElement.textContent = totalItems;
+    }
+
+    if (totalElement) {
+        totalElement.textContent = `₹${totalPrice.toFixed(2)}`;
+    }
+
+    if (!cartContainer) return;
+
+    if (cart.length === 0) {
+        cartContainer.innerHTML = "<p>Your cart is empty.</p>";
+        return;
+    }
+
+    cartContainer.innerHTML = cart.map(item => `
+        <div class="cart-item">
+            <img
+                src="${escapeHTML(item.image || "")}"
+                alt="${escapeHTML(item.name)}"
+                width="65"
+                onerror="this.style.display='none'"
+            >
+
+            <div>
+                <h4>${escapeHTML(item.name)}</h4>
+
+                <p>₹${Number(item.price).toFixed(2)}</p>
+
+                <label>
+                    Quantity:
+                    <input
+                        type="number"
+                        min="1"
+                        value="${Number(item.quantity)}"
+                        onchange="updateCartQuantity(
+                            ${JSON.stringify(String(item.id))},
+                            this.value
+                        )"
+                    >
+                </label>
+
+                <button
+                    type="button"
+                    onclick="removeFromCart(
+                        ${JSON.stringify(String(item.id))}
+                    )"
+                >
+                    Remove
+                </button>
+            </div>
+        </div>
+    `).join("");
 }
 
 // ========================================
@@ -338,50 +473,46 @@ function addToCart(productId) {
 async function loginUser(event) {
     if (event) event.preventDefault();
 
-    const emailElement = document.getElementById("loginEmail");
-    const passwordElement = document.getElementById("loginPassword");
+    const emailElement = document.getElementById("login-email");
+    const passwordElement = document.getElementById("login-password");
 
-    if (!emailElement || !passwordElement) return;
+    if (!emailElement || !passwordElement) {
+        showMessage("Login form fields were not found.", true);
+        return;
+    }
 
     const email = emailElement.value.trim();
     const password = passwordElement.value;
 
     if (!email || !password) {
-        alert("Please enter email and password.");
+        showMessage("Enter your email and password.", true);
         return;
     }
 
     try {
-        const response = await fetch(
-            "http://localhost:8080/api/login",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded"
-                },
-                body:
-                    "email=" + encodeURIComponent(email) +
-                    "&password=" + encodeURIComponent(password)
-            }
-        );
+        const data = await apiRequest("/login", {
+            method: "POST",
+            body: JSON.stringify({ email, password })
+        });
 
-        const result = await response.json();
-
-        if (result.success) {
-            localStorage.setItem(
-                "loggedInUser",
-                JSON.stringify(result.user)
-            );
-
-            alert("Login successful!");
-            window.location.href = "index.html";
-        } else {
-            alert(result.message || "Login failed.");
+        if (data.token) {
+            localStorage.setItem("authToken", data.token);
         }
 
+        if (data.user) {
+            localStorage.setItem(
+                "loggedInUser",
+                JSON.stringify(data.user)
+            );
+        }
+
+        showMessage(data.message || "Login successful!");
     } catch (error) {
         console.error("Login error:", error);
-        alert("Cannot connect to Jai Mart backend!");
+        showMessage(
+            `Login failed: ${error.message}`,
+            true
+        );
     }
 }
 
@@ -392,89 +523,38 @@ async function loginUser(event) {
 async function registerUser(event) {
     if (event) event.preventDefault();
 
-    const nameElement = document.getElementById("registerName");
-    const emailElement = document.getElementById("registerEmail");
-    const phoneElement = document.getElementById("registerPhone");
-    const passwordElement = document.getElementById("registerPassword");
-    const confirmPasswordElement = document.getElementById("confirmPassword");
+    const nameElement = document.getElementById("register-name");
+    const emailElement = document.getElementById("register-email");
+    const passwordElement = document.getElementById("register-password");
 
-    if (
-        !nameElement ||
-        !emailElement ||
-        !phoneElement ||
-        !passwordElement ||
-        !confirmPasswordElement
-    ) {
+    if (!nameElement || !emailElement || !passwordElement) {
+        showMessage("Registration form fields were not found.", true);
         return;
     }
 
     const name = nameElement.value.trim();
     const email = emailElement.value.trim();
-    const phone = phoneElement.value.trim();
     const password = passwordElement.value;
-    const confirmPassword = confirmPasswordElement.value;
 
-    if (!name || !email || !phone || !password) {
-        alert("Please fill all required fields.");
-        return;
-    }
-
-    if (password !== confirmPassword) {
-        alert("Passwords do not match!");
+    if (!name || !email || !password) {
+        showMessage("Please fill in all registration fields.", true);
         return;
     }
 
     try {
-        const response = await fetch(
-            "http://localhost:8080/api/register",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded"
-                },
-                body:
-                    "name=" + encodeURIComponent(name) +
-                    "&email=" + encodeURIComponent(email) +
-                    "&phone=" + encodeURIComponent(phone) +
-                    "&password=" + encodeURIComponent(password)
-            }
-        );
+        const data = await apiRequest("/register", {
+            method: "POST",
+            body: JSON.stringify({ name, email, password })
+        });
 
-        const result = await response.json();
-
-        if (result.success) {
-            alert("Account created successfully!");
-            window.location.href = "login.html";
-        } else {
-            alert(result.message || "Registration failed.");
-        }
-
+        showMessage(data.message || "Registration successful!");
     } catch (error) {
         console.error("Registration error:", error);
-        alert("Cannot connect to Jai Mart backend!");
+        showMessage(
+            `Registration failed: ${error.message}`,
+            true
+        );
     }
-}
-
-// ========================================
-// LOAD CHECKOUT TOTAL
-// ========================================
-
-function loadCheckoutTotal() {
-    const totalElement = document.getElementById("checkoutTotal");
-
-    if (!totalElement) return;
-
-    const cart = JSON.parse(localStorage.getItem("cart")) || [];
-
-    const total = cart.reduce(
-        (sum, item) =>
-            sum +
-            (Number(item.price) || 0) *
-            (Number(item.quantity) || 1),
-        0
-    );
-
-    totalElement.textContent = total.toFixed(2);
 }
 
 // ========================================
@@ -484,199 +564,100 @@ function loadCheckoutTotal() {
 async function placeOrder(event) {
     if (event) event.preventDefault();
 
-    const cart = JSON.parse(localStorage.getItem("cart")) || [];
-
     if (cart.length === 0) {
-        alert("Your cart is empty!");
+        showMessage("Your cart is empty.", true);
         return;
     }
 
-    const nameElement = document.getElementById("orderName");
-    const phoneElement = document.getElementById("orderPhone");
-    const addressElement = document.getElementById("orderAddress");
-    const cityElement = document.getElementById("orderCity");
-    const pincodeElement = document.getElementById("orderPincode");
+    const token = localStorage.getItem("authToken");
 
-    if (
-        !nameElement ||
-        !phoneElement ||
-        !addressElement ||
-        !cityElement ||
-        !pincodeElement
-    ) {
-        alert("Delivery form fields could not be found.");
-        return;
-    }
-
-    const name = nameElement.value.trim();
-    const phone = phoneElement.value.trim();
-    const address = addressElement.value.trim();
-    const city = cityElement.value.trim();
-    const pincode = pincodeElement.value.trim();
-
-    if (!name || !phone || !address || !city || !pincode) {
-        alert("Please fill all delivery details.");
-        return;
-    }
-
-    const total = cart.reduce(
-        (sum, item) =>
-            sum +
-            (Number(item.price) || 0) *
-            (Number(item.quantity) || 1),
-        0
-    );
-
-    const user = JSON.parse(localStorage.getItem("loggedInUser"));
-
-    if (!user || !user.id) {
-        alert("Please login before placing an order.");
-        window.location.href = "login.html";
-        return;
-    }
-
-    const requestBody = {
-        user_id: Number(user.id),
-        total_amount: total,
-        name,
-        phone,
-        address,
-        city,
-        pincode,
-        items: cart.map(item =>
-            `${Number(item.id)}:${Number(item.quantity) || 1}:${Number(item.price) || 0}`
-        ).join(",")
+    const order = {
+        items: cart.map(item => ({
+            product_id: item.id,
+            quantity: Number(item.quantity)
+        })),
+        total: cart.reduce(
+            (sum, item) =>
+                sum + Number(item.price) * Number(item.quantity),
+            0
+        )
     };
 
     try {
-        const response = await fetch(
-            "http://localhost:8080/api/orders",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(requestBody)
-            }
-        );
+        const data = await apiRequest("/orders", {
+            method: "POST",
+            headers: token
+                ? { Authorization: `Bearer ${token}` }
+                : {},
+            body: JSON.stringify(order)
+        });
 
-        const result = await response.json();
+        cart = [];
+        saveCart();
 
-        if (!response.ok || !result.success) {
-            alert(result.message || "Order could not be placed.");
-            return;
-        }
-
-        const order = {
-            orderId: result.order_id,
-            name,
-            phone,
-            address,
-            city,
-            pincode,
-            items: cart,
-            total,
-            status: "Order Placed",
-            date: new Date().toLocaleString()
-        };
-
-        let orders = JSON.parse(localStorage.getItem("orders")) || [];
-        orders.push(order);
-
-        localStorage.setItem("orders", JSON.stringify(orders));
-        localStorage.removeItem("cart");
-
-        alert("Order placed successfully!");
-        window.location.href = "orders.html";
-
+        showMessage(data.message || "Order placed successfully!");
+        await loadProducts();
     } catch (error) {
         console.error("Order error:", error);
-        alert("Cannot connect to Jai Mart backend or order API!");
+        showMessage(
+            `Order failed: ${error.message}`,
+            true
+        );
     }
 }
 
 // ========================================
-// DISPLAY ORDERS
+// LOGOUT
 // ========================================
 
-function displayOrders() {
-    const orderList = document.getElementById("orderList");
+function logoutUser() {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("loggedInUser");
 
-    if (!orderList) return;
-
-    const orders = JSON.parse(localStorage.getItem("orders")) || [];
-
-    if (orders.length === 0) {
-        orderList.innerHTML = "<p>No orders found.</p>";
-        return;
-    }
-
-    orderList.innerHTML = orders.map(order => {
-        const items = order.items || [];
-
-        const itemHTML = items.map(item => `
-            <div class="order-item">
-                <strong>${item.name}</strong>
-                <span>
-                    ₹${Number(item.price || 0).toFixed(2)}
-                    × ${Number(item.quantity || 1)}
-                </span>
-            </div>
-        `).join("");
-
-        return `
-            <div class="order-card">
-                <h3>Order ID: ${order.orderId}</h3>
-                <p>Date: ${order.date}</p>
-                <p>
-                    Status:
-                    <strong class="order-status">${order.status}</strong>
-                </p>
-                <p>
-                    Delivery: ${order.address}, ${order.city} - ${order.pincode}
-                </p>
-                <div>${itemHTML}</div>
-                <h3>Total: ₹${Number(order.total || 0).toFixed(2)}</h3>
-            </div>
-        `;
-    }).join("");
+    showMessage("Logged out successfully.");
 }
 
 // ========================================
-// UPDATE LOGIN LINK
+// INITIALIZE WEBSITE
 // ========================================
 
-function updateLoginLink() {
-    const loginLink = document.getElementById("loginLink");
-
-    if (!loginLink) return;
-
-    const user = JSON.parse(localStorage.getItem("loggedInUser"));
-
-    if (user) {
-        loginLink.textContent = "Logout";
-        loginLink.href = "#";
-
-        loginLink.onclick = function(event) {
-            event.preventDefault();
-            localStorage.removeItem("loggedInUser");
-            window.location.href = "index.html";
-        };
-    } else {
-        loginLink.textContent = "Login";
-        loginLink.href = "login.html";
-        loginLink.onclick = null;
-    }
-}
-
-// ========================================
-// PAGE LOAD
-// ========================================
-
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", () => {
     loadProducts();
-    loadCheckoutTotal();
-    displayOrders();
-    updateLoginLink();
-    enableSearchTyping();
+    renderCart();
+
+    const searchInput =
+        document.getElementById("search-input") ||
+        document.getElementById("search");
+
+    if (searchInput) {
+        searchInput.addEventListener("input", searchProducts);
+    }
+
+    const categorySelect =
+        document.getElementById("category-filter");
+
+    if (categorySelect) {
+        categorySelect.addEventListener("change", event => {
+            filterCategory(event.target.value);
+        });
+    }
+
+    const loginForm = document.getElementById("login-form");
+
+    if (loginForm) {
+        loginForm.addEventListener("submit", loginUser);
+    }
+
+    const registerForm =
+        document.getElementById("register-form");
+
+    if (registerForm) {
+        registerForm.addEventListener("submit", registerUser);
+    }
+
+    const orderForm = document.getElementById("order-form");
+
+    if (orderForm) {
+        orderForm.addEventListener("submit", placeOrder);
+    }
 });

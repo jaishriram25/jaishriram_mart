@@ -15,10 +15,10 @@ WORKDIR /app
 # Copy all source files from your backend folder
 COPY . .
 
-# Run CMake and compile the executable binary
+# Run CMake with explicit PostgreSQL hints, then compile
 RUN mkdir build && \
     cd build && \
-    cmake .. && \
+    cmake -DPostgreSQL_LIBRARY_DIR=/usr/lib/x86_64-linux-gnu .. && \
     make
 
 # ==========================================

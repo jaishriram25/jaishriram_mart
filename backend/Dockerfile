@@ -1,32 +1,21 @@
-# ==========================================
-# STAGE 1: Build the C++ Executable
-# ==========================================
+```dockerfile
 FROM gcc:latest AS builder
 
-# Install CMake AND PostgreSQL development libraries
 RUN apt-get update && apt-get install -y \
     cmake \
     libpq-dev \
-    postgresql-client
+    git \
+    && rm -rf /var/lib/apt/lists/*
 
-# Set the working directory inside the container
 WORKDIR /app
 
-# Copy all source files from your backend folder
 COPY . .
 
-# Run CMake with explicit PostgreSQL hints, then compile
-RUN mkdir build && \
-    cd build && \
-    cmake -DPostgreSQL_LIBRARY_DIR=/usr/lib/x86_64-linux-gnu .. && \
-    make
+RUN cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && \
+    cmake --build build --config Release -j2
 
-# ==========================================
-# STAGE 2: Lightweight Production Runtime
-# ==========================================
 FROM ubuntu:latest
 
-# Install runtime dependencies including libpq for PostgreSQL connectivity
 RUN apt-get update && apt-get install -y \
     ca-certificates \
     libpq5 \
@@ -34,11 +23,9 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Copy the compiled binary from the builder stage
-COPY --from=builder /app/build/main .
+COPY --from=builder /app/build/jai_mart_server ./jai_mart_server
 
-# Expose the default port Render listens to
 EXPOSE 8080
 
-# The execution command to launch your C++ backend
-CMD ["./main"]
+CMD ["./jai_mart_server"]
+```
